@@ -42,6 +42,10 @@ export async function POST(req: Request) {
     }
 
     if (dbConnected) {
+      // Check if mobile exists for Returning Customer logic
+      const existingCount = await Appointment.countDocuments({ mobile: validatedData.mobile });
+      const isFirstVisit = existingCount === 0;
+
       // 3. Generate unique booking ID (APPT-2024-XXXX) using DB
       const count = await Appointment.countDocuments();
       const currentYear = new Date().getFullYear();
@@ -50,6 +54,7 @@ export async function POST(req: Request) {
       // 4. Save to DB
       newAppointment = await Appointment.create({
         ...validatedData,
+        isFirstVisit, // Override with dynamic calculation
         bookingId,
         status: 'confirmed',
       });
@@ -64,6 +69,11 @@ export async function POST(req: Request) {
           appointments = [];
         }
       }
+      
+      // Check if mobile exists for Returning Customer logic
+      const existingCount = appointments.filter((a: any) => a.mobile === validatedData.mobile).length;
+      const isFirstVisit = existingCount === 0;
+
       const count = appointments.length;
       const currentYear = new Date().getFullYear();
       const bookingId = `APPT-${currentYear}-${String(count + 1).padStart(4, '0')}`;
@@ -71,6 +81,7 @@ export async function POST(req: Request) {
       newAppointment = {
         _id: `mock-${Date.now()}`,
         ...validatedData,
+        isFirstVisit, // Override with dynamic calculation
         bookingId,
         status: 'confirmed',
         createdAt: new Date().toISOString(),

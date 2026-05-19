@@ -100,25 +100,7 @@ export async function POST(req: Request) {
             email: z.string().optional().describe('Email address of the patient (optional)'),
           }),
           execute: async ({ patientName, mobile, age, gender, date, timeSlot, reason, email }: BookAppointmentInput) => {
-            const validatedData = {
-              appointmentType: "General Consultation",
-              price: 300,
-              date: new Date(date),
-              timeSlot,
-              patientName,
-              age: Number(age),
-              gender,
-              mobile,
-              email: email || "",
-              reason,
-              notes: "Booked via Chatbot Assistant",
-              isFirstVisit: true,
-              whatsappReminder: true,
-            };
-
-            let newAppointment;
             let dbConnected = false;
-
             try {
               await connectToDatabase();
               dbConnected = true;
@@ -126,13 +108,32 @@ export async function POST(req: Request) {
               console.warn("MongoDB connection failed in Chat API, falling back to local file storage:", e.message);
             }
 
+            let isFirstVisit = true;
+            let newAppointment;
+
             if (dbConnected) {
+              // Check if mobile exists for Returning Customer logic
+              const existingCount = await Appointment.countDocuments({ mobile });
+              isFirstVisit = existingCount === 0;
+
               const count = await Appointment.countDocuments();
               const currentYear = new Date().getFullYear();
               const bookingId = `APPT-${currentYear}-${String(count + 1).padStart(4, '0')}`;
 
               newAppointment = await Appointment.create({
-                ...validatedData,
+                appointmentType: "General Consultation",
+                price: 300,
+                date: new Date(date),
+                timeSlot,
+                patientName,
+                age: Number(age),
+                gender,
+                mobile,
+                email: email || "",
+                reason,
+                notes: "Booked via Chatbot Assistant",
+                isFirstVisit,
+                whatsappReminder: true,
                 bookingId,
                 status: 'confirmed',
               });
@@ -146,13 +147,30 @@ export async function POST(req: Request) {
                   appointments = [];
                 }
               }
+
+              // Check if mobile exists for Returning Customer logic
+              const existingCount = appointments.filter((a: any) => a.mobile === mobile).length;
+              isFirstVisit = existingCount === 0;
+
               const count = appointments.length;
               const currentYear = new Date().getFullYear();
               const bookingId = `APPT-${currentYear}-${String(count + 1).padStart(4, '0')}`;
               
               newAppointment = {
                 _id: `mock-${Date.now()}`,
-                ...validatedData,
+                appointmentType: "General Consultation",
+                price: 300,
+                date: new Date(date),
+                timeSlot,
+                patientName,
+                age: Number(age),
+                gender,
+                mobile,
+                email: email || "",
+                reason,
+                notes: "Booked via Chatbot Assistant",
+                isFirstVisit,
+                whatsappReminder: true,
                 bookingId,
                 status: 'confirmed',
                 createdAt: new Date().toISOString(),

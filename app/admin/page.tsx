@@ -38,6 +38,7 @@ interface Appointment {
   email?: string;
   reason: string;
   notes?: string;
+  isFirstVisit?: boolean;
   status: "confirmed" | "completed" | "cancelled";
   createdAt: string;
 }
@@ -366,7 +367,14 @@ export default function AdminDashboard() {
                             onClick={() => { setSelectedAppointment(appt); setIsEditing(false); }}
                           >
                             <td className="py-4 px-6">
-                              <div className="font-bold text-primary text-sm">{appt.patientName}</div>
+                              <div className="flex items-center gap-2">
+                                <div className="font-bold text-primary text-sm">{appt.patientName}</div>
+                                {appt.isFirstVisit ? (
+                                  <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">New</span>
+                                ) : (
+                                  <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Returning</span>
+                                )}
+                              </div>
                               <div className="text-xs text-text-grey font-mono mt-0.5">{appt.bookingId}</div>
                             </td>
                             <td className="py-4 px-6">
@@ -428,7 +436,14 @@ export default function AdminDashboard() {
                 <motion.div key={selectedAppointment._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h4 className="font-bold text-primary text-lg">{selectedAppointment.patientName}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-primary text-lg">{selectedAppointment.patientName}</h4>
+                        {selectedAppointment.isFirstVisit ? (
+                          <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">New</span>
+                        ) : (
+                          <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Returning</span>
+                        )}
+                      </div>
                       <p className="text-xs text-text-grey font-mono mt-0.5">{selectedAppointment.bookingId}</p>
                     </div>
                     <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${getStatusBadgeClass(selectedAppointment.status)}`}>{selectedAppointment.status}</span>
