@@ -47,6 +47,12 @@ export default function AdminDashboard() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Auth State
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginId, setLoginId] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
   const fetchAppointments = async (showToast = false) => {
     if (showToast) setIsRefreshing(true);
     try {
@@ -68,8 +74,24 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchAppointments();
+    if (sessionStorage.getItem("admin_auth") === "true") {
+      setIsAuthenticated(true);
+      fetchAppointments();
+    }
+    setIsCheckingAuth(false);
   }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loginId === "Vehon00" && loginPassword === "vku123") {
+      sessionStorage.setItem("admin_auth", "true");
+      setIsAuthenticated(true);
+      toast.success("Welcome to Admin Dashboard");
+      fetchAppointments();
+    } else {
+      toast.error("Invalid Admin ID or Password");
+    }
+  };
 
   const handleUpdateStatus = async (id: string, status: "completed" | "cancelled") => {
     try {
@@ -146,6 +168,66 @@ export default function AdminDashboard() {
       default: return type;
     }
   };
+
+  if (isCheckingAuth) return null;
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center relative overflow-hidden px-4">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30 pointer-events-none" />
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative z-10"
+        >
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-primary">
+              <Users className="w-8 h-8" />
+            </div>
+            <h2 className="text-2xl font-black font-heading text-primary">Admin Access</h2>
+            <p className="text-sm text-text-grey mt-2">Enter your credentials to access the console</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label className="block text-xs font-bold text-text-grey uppercase tracking-wider mb-2">Admin ID</label>
+              <input
+                type="text"
+                value={loginId}
+                onChange={(e) => setLoginId(e.target.value)}
+                className="w-full bg-slate-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+                placeholder="Enter Admin ID"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-text-grey uppercase tracking-wider mb-2">Password</label>
+              <input
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                className="w-full bg-slate-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+                placeholder="Enter Password"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-bold rounded-xl px-4 py-3.5 transition-colors shadow-sm"
+            >
+              Secure Login
+            </button>
+            <div className="text-center mt-4">
+              <Link href="/" className="text-sm text-text-grey hover:text-primary transition-colors">
+                &larr; Back to Home
+              </Link>
+            </div>
+          </form>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f8fafc] pt-28 pb-16 relative overflow-hidden">
