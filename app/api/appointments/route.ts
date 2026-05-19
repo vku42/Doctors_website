@@ -138,10 +138,11 @@ export async function GET() {
 
 export async function PATCH(req: Request) {
   try {
-    const { id, status } = await req.json();
+    const data = await req.json();
+    const { id, ...updateFields } = data;
 
-    if (!id || !status) {
-      return NextResponse.json({ error: "Missing required fields id or status" }, { status: 400 });
+    if (!id) {
+      return NextResponse.json({ error: "Missing required field id" }, { status: 400 });
     }
 
     let updatedAppointment;
@@ -155,7 +156,7 @@ export async function PATCH(req: Request) {
     }
 
     if (dbConnected) {
-      updatedAppointment = await Appointment.findByIdAndUpdate(id, { status }, { new: true });
+      updatedAppointment = await Appointment.findByIdAndUpdate(id, { $set: updateFields }, { new: true });
     } else {
       const filePath = path.join(process.cwd(), 'appointments.json');
       if (fs.existsSync(filePath)) {
@@ -168,7 +169,7 @@ export async function PATCH(req: Request) {
 
         const index = appointments.findIndex((appt: any) => appt._id === id);
         if (index !== -1) {
-          appointments[index].status = status;
+          appointments[index] = { ...appointments[index], ...updateFields };
           updatedAppointment = appointments[index];
           fs.writeFileSync(filePath, JSON.stringify(appointments, null, 2), 'utf8');
         } else {
@@ -182,6 +183,55 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ success: true, appointment: updatedAppointment });
   } catch (error) {
     console.error("PATCH Appointment API Error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const { id } = await req.json();
+
+    if (!id) {
+      return NextResponse.json({ error: "Missing required field id" }, { status: 400 });
+    }
+
+    let dbConnected = false;
+
+    try {
+      await connectToDatabase();
+      dbConnected = true;
+    } catch (e: any) {
+      console.warn("MongoDB connection failed, falling back to local file storage for DELETE:", e.message);
+    }
+
+    if (dbConnected) {
+      await Appointment.findByIdAndDelete(id);
+    } else {
+      const filePath = path.join(process.cwd(), 'appointments.json');
+      if (fs.existsSync(filePath)) {
+        let appointments = [];
+        try {
+          appointments = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        } catch (err) {
+          appointments = [];
+        }
+
+        const initialLength = appointments.length;
+        appointments = appointments.filter((appt: any) => appt._id !== id);
+        
+        if (appointments.length < initialLength) {
+          fs.writeFileSync(filePath, JSON.stringify(appointments, null, 2), 'utf8');
+        } else {
+          return NextResponse.json({ error: "Appointment not found in local storage" }, { status: 404 });
+        }
+      } else {
+        return NextResponse.json({ error: "No appointments file found" }, { status: 404 });
+      }
+    }
+
+    return NextResponse.json({ success: true, message: "Appointment deleted successfully" });
+  } catch (error) {
+    console.error("DELETE Appointment API Error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
