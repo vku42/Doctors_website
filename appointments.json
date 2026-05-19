@@ -1,0 +1,21 @@
+[
+  {
+    "_id": "mock-1779093697973",
+    "appointmentType": "general",
+    "price": 300,
+    "date": "2026-05-18T18:30:00.000Z",
+    "timeSlot": "05:30 PM",
+    "patientName": "Atal Upadhyay",
+    "age": "30",
+    "gender": "Male",
+    "mobile": "9876543210",
+    "email": "atal@example.com",
+    "reason": "General Checkup",
+    "notes": "",
+    "isFirstVisit": true,
+    "whatsappReminder": true,
+    "bookingId": "APPT-2026-0001",
+    "status": "confirmed",
+    "createdAt": "2026-05-18T08:41:37.973Z"
+  }
+]
