@@ -525,6 +525,35 @@ export default function AdminDashboard() {
                       </div>
                     )}
                   </div>
+
+                  {/* Account History */}
+                  {(() => {
+                    const history = appointments
+                      .filter(a => a.mobile === selectedAppointment.mobile && a._id !== selectedAppointment._id)
+                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                    
+                    if (history.length === 0) return null;
+
+                    return (
+                      <div className="space-y-3 pt-4 border-t border-gray-100">
+                        <h5 className="text-xs font-bold uppercase text-text-grey tracking-wider">Account History ({history.length})</h5>
+                        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                          {history.map(hist => (
+                            <div key={hist._id} onClick={() => setSelectedAppointment(hist)} className="bg-slate-50 border border-gray-100 rounded-xl p-3 cursor-pointer hover:bg-slate-100 transition-colors">
+                              <div className="flex justify-between items-start mb-1">
+                                <span className="font-bold text-sm text-primary">{hist.patientName}</span>
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded capitalize ${getStatusBadgeClass(hist.status)}`}>{hist.status}</span>
+                              </div>
+                              <div className="flex justify-between items-center text-xs text-text-grey">
+                                <span>{new Date(hist.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                                <span className="truncate ml-2">{formatAppointmentType(hist.appointmentType)}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </motion.div>
               )
             ) : (
