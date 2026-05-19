@@ -57,6 +57,7 @@ export async function POST(req: Request) {
         isFirstVisit, // Override with dynamic calculation
         bookingId,
         status: 'confirmed',
+        paymentStatus: 'pending',
       });
     } else {
       // Fallback: Save to a local JSON file
@@ -84,6 +85,7 @@ export async function POST(req: Request) {
         isFirstVisit, // Override with dynamic calculation
         bookingId,
         status: 'confirmed',
+        paymentStatus: 'pending',
         createdAt: new Date().toISOString(),
       };
       

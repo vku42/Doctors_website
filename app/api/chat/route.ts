@@ -136,6 +136,7 @@ export async function POST(req: Request) {
                 whatsappReminder: true,
                 bookingId,
                 status: 'confirmed',
+                paymentStatus: 'pending',
               });
             } else {
               const filePath = path.join(process.cwd(), 'appointments.json');
@@ -173,6 +174,7 @@ export async function POST(req: Request) {
                 whatsappReminder: true,
                 bookingId,
                 status: 'confirmed',
+                paymentStatus: 'pending',
                 createdAt: new Date().toISOString(),
               };
               
